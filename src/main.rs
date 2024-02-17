@@ -5,13 +5,15 @@ mod config;
 mod logging;
 mod run;
 
+use std::path::PathBuf;
+
 use clap::Parser as _;
 use confique::toml::FormatOptions;
 use confique::Config as _;
 use miette::{bail, IntoDiagnostic};
 use tracing::*;
 
-use crate::cli::{Cli, Command};
+use crate::cli::{Cli, Cmd};
 use crate::config::Config;
 
 #[allow(dead_code)]
@@ -27,7 +29,7 @@ fn main() -> miette::Result<()> {
     let config_path = exe_path.parent().unwrap().join("config.toml");
     debug!(?config_path);
     debug!("config exists: {}", config_path.exists());
-    let config = if cli.command != Command::GenerateConfig {
+    let config = if cli.command != Cmd::GenerateConfig {
         info!("trying to read config from `{}`", config_path.display());
         if !config_path.exists() {
             info!("no existing config detected");
@@ -50,7 +52,7 @@ fn main() -> miette::Result<()> {
     };
 
     match &cli.command {
-        Command::GenerateConfig => {
+        Cmd::GenerateConfig => {
             if !config_path.exists() {
                 info!("generating config at `{}`", config_path.display());
                 let template = confique::toml::template::<Config>(FormatOptions::default());
@@ -60,8 +62,16 @@ fn main() -> miette::Result<()> {
                 bail!("config.toml already exists!");
             }
         }
-        Command::Run { rustc_repo_path } => {
-            run::run(&config, rustc_repo_path.as_path())?;
+        Cmd::Run {
+            rustc_repo_path,
+            report_path,
+        } => {
+            run::run(
+                &config,
+                &exe_path,
+                rustc_repo_path.as_path(),
+                report_path.as_ref().map(PathBuf::as_path),
+            )?;
         }
     }
 

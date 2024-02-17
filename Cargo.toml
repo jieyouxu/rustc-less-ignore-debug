@@ -24,3 +24,4 @@ indicatif = "0.17.7"
 walkdir = "2.4.0"
 serde = { version = "1.0.196", features = ["derive"] }
 clap = { version = "4.5.0", features = ["derive"] }
+thiserror = "1.0.57"
