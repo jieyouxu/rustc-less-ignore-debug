@@ -8,12 +8,13 @@ mod run;
 use clap::Parser as _;
 use confique::toml::FormatOptions;
 use confique::Config as _;
-use miette::{bail, miette, Context, IntoDiagnostic, Severity};
+use miette::{bail, IntoDiagnostic};
 use tracing::*;
 
 use crate::cli::{Cli, Command};
 use crate::config::Config;
 
+#[allow(dead_code)]
 const TARGET_TRIPLE: &str = env!("TARGET");
 
 fn main() -> miette::Result<()> {
@@ -62,15 +63,6 @@ fn main() -> miette::Result<()> {
         Command::Run { rustc_repo_path } => {
             run::run(&config, rustc_repo_path.as_path())?;
         }
-    }
-
-    if config.target_directories.is_empty() {
-        warn!("no target directories specified in config");
-        warn!("maybe you forgot to edit the config?");
-        bail!(
-            severity = Severity::Warning,
-            "no target directories specified, exiting"
-        );
     }
 
     Ok(())
