@@ -19,30 +19,34 @@ const TARGET_TRIPLE: &str = env!("TARGET");
 fn main() -> miette::Result<()> {
     logging::setup_logging();
 
-    let exe_path = std::env::current_exe().into_diagnostic()?;
-    let config_path = exe_path.parent().unwrap().join("config.toml");
-
-    debug!(?config_path);
-    debug!("config exists: {}", config_path.exists());
-    info!("trying to read config from `{}`", config_path.display());
-    if !config_path.exists() {
-        info!("no existing config detected");
-        info!("you can generate a default config via `generate-config` command");
-        info!("the tool will now exit");
-        return Ok(());
-    }
-
-    let config = Config::from_file(&config_path)
-        .inspect_err(|e| {
-            warn!("failed to load config from `{}`", config_path.display());
-            warn!("default config values will be used");
-            warn!(?e);
-        })
-        .unwrap_or_default();
-    debug!(?config);
-
     let cli = Cli::parse();
     debug!(?cli);
+
+    let exe_path = std::env::current_exe().into_diagnostic()?;
+    let config_path = exe_path.parent().unwrap().join("config.toml");
+    debug!(?config_path);
+    debug!("config exists: {}", config_path.exists());
+    let config = if cli.command != Command::GenerateConfig {
+        info!("trying to read config from `{}`", config_path.display());
+        if !config_path.exists() {
+            info!("no existing config detected");
+            info!("you can generate a default config via `generate-config` command");
+            info!("the tool will now exit");
+            return Ok(());
+        }
+
+        let config = Config::from_file(&config_path)
+            .inspect_err(|e| {
+                warn!("failed to load config from `{}`", config_path.display());
+                warn!("default config values will be used");
+                warn!(?e);
+            })
+            .unwrap_or_default();
+        debug!(?config);
+        config
+    } else {
+        Config::default()
+    };
 
     match &cli.command {
         Command::GenerateConfig => {

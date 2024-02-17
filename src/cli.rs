@@ -9,7 +9,7 @@ pub(crate) struct Cli {
     pub(crate) command: Command,
 }
 
-#[derive(Debug, Subcommand)]
+#[derive(Debug, PartialEq, Subcommand)]
 pub(crate) enum Command {
     /// Generate a default config file in the same directory as the executable.
     GenerateConfig,
